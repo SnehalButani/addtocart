@@ -1,0 +1,53 @@
+const addtocard = async (req, res) => {
+    try {
+        const { userid, productid } = req.body;
+        if (!userid || !productid) return res.status(400).json({ message: "Id is required..." });
+
+        const prodata = await product.findOne({ _id: productid });
+        if (!prodata) return res.status(400).json({ message: "product id invaild..." });
+
+        const userdata = await signup.findById(userid);
+        if (!userdata) return res.status(400).json({ message: "user id invaild..." });
+
+        var updatoproduct;
+        for (let i = 0; i < userdata.addtocart.length; i++) {
+            const strid = userdata.addtocart[i].productid.toString();
+            const reqid = productid.toString();
+            var count = 0;
+            if (strid == reqid) {
+                count = count + 1;
+            }
+        }
+
+        if (count >= 1) {
+            updatoproduct = await signup.findOneAndUpdate(
+                {
+                    "_id": userid,
+                    "addtocart": {
+                        "$elemMatch": { "productid": productid }
+                    }
+                },
+                { $inc: { 'addtocart.$.quantity': 1 } },
+                { new: true });
+        } else {
+            updatoproduct = await signup.findOneAndUpdate(
+                {
+                    "_id": userid
+                },
+                {
+                    "$push": {
+                        'addtocart': {
+                            "productid": productid,
+                            "quantity": 1
+                        }
+                    }
+                },
+                { new: true });
+        }
+        res.status(200).json({ data: updatoproduct });
+
+    } catch (error) {
+        const message = error.message;
+        res.status(400).json({ message });
+    }
+}
